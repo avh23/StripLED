@@ -27,7 +27,7 @@ IRrecv irrecv(5); // GPIO5 = D3
 
 WiFiUDP client;
 
-int pattern = 4;
+int pattern = 5;
 
 const uint8_t PointCount = 5;   // for pattern "Points"
 const uint8_t PointsDim = 0;  // 0 = no trail, 256 = infinite trail
@@ -37,7 +37,7 @@ int16_t pointpos[PointCount];
 int16_t pointspd[PointCount];
 CRGB pointcol[PointCount];
 
-CRGB leds[PixelCount];
+CRGB leds[PixelCount+10];   // +10 to prevent stupid overflows
 
 // Settings for AtmoOrb
 const uint8_t  AtmoLeds = 1;
@@ -56,6 +56,9 @@ byte prevColor[3];
 byte currentColor[3];
 byte smoothStep = SMOOTH_STEPS;
 unsigned long smoothMillis;
+
+// for "Flag"
+uint16_t flagpos = 0;
 
 void SetRandomSeed()
 {
@@ -192,6 +195,19 @@ void loop() {
         FastLED.show();
         delay(40);
         h++;
+
+    } else if (pattern == 5) {
+        // Flagge
+        fill_solid(leds, PixelCount, CRGB::Black);
+
+        fill_solid(leds+(flagpos % PixelCount), 5, CRGB::Red);
+        fill_solid(leds+((flagpos+5) % PixelCount), 5, CRGB::Yellow);
+        fill_solid(leds+((flagpos+10) % PixelCount), 5, CRGB::Green);
+
+        FastLED.show();
+        delay(50);
+        flagpos++;
+        if (flagpos == PixelCount) flagpos = 0;
 
     } else if (pattern == 4) {
         // Points
