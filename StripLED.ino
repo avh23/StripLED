@@ -25,7 +25,7 @@ WiFiUDP client;
 
 int pattern = 4;
 
-const uint8_t PointCount = 3;   // for pattern "Points"
+const uint8_t PointCount = 5;   // for pattern "Points"
 const uint8_t PointsDim = 0;  // 0 = no trail, 256 = infinite trail
 const uint8_t PointsMaxSpeed = 15;
 const float   PointsAge = 2000;
