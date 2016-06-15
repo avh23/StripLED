@@ -1,0 +1,15 @@
+brighter    807FA15E    C8F8AC3D
+darker      55034AC3
+off         9AF57A5F
+on          807FE11E    7E087B19
+R           807F916E    33CCDC55
+G           807F11EE    695F0323
+B           807F51AE    AEB753BF
+W           807FD12E    446431B9
+Flash       807FF10E    38D5F9F5
+Strobe      807FE916    ADEB659D
+Fade        807FD926    92EBB33D
+Smooth      807FC936    7B758561
+
+
+repeat      FFFFFFFF

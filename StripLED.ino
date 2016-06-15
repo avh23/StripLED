@@ -15,6 +15,10 @@ unsigned int orbID = 1;
 
 const uint16_t PixelCount = 30;
 
+// 0 == Martin's Philips IR
+// 1 == Alex's Tween IR
+const uint8_t IR_type = 1;
+
 // Each pixel needs ca 1mA even when black
 // also, the power-calculation of FastLED seems to be off by a factor of ~0.6
 const uint16_t maxMilliAmp = (600 - 0.9*PixelCount ) / 0.6;
@@ -367,23 +371,51 @@ void handleIR(decode_results *results) {
     static uint16_t lastcode = 0xFFFF;
     static byte lastrepeat = false;
 
-    uint16_t code = results->value;
-    bool repeatbit = ((code & 0x0800) == 0x0800);
-    code &= ~0x0800; // cut "repeat" bit (0x0800)
+    uint32_t code = results->value;
 
-    bool repeat = false;
-    if (code == lastcode && repeatbit == lastrepeat) {
-        repeat = true;
-    } else {
-        lastcode = code;
-        lastrepeat = repeatbit;
-    }
+    if (IR_type == 0) {
+        // Martin's IR
+        bool repeatbit = ((code & 0x0800) == 0x0800);
+        code &= ~0x0800; // cut "repeat" bit (0x0800)
 
-    bool shift = ( (code & 0x0140) == 0x0140);
-    code &= ~0x0140; // cut "shift" bits
+        bool repeat = false;
+        if (code == lastcode && repeatbit == lastrepeat) {
+            repeat = true;
+        } else {
+            lastcode = code;
+            lastrepeat = repeatbit;
+        }
 
-    if (code <=9 && ! repeat && ! shift) {
-        pattern = code;
+        bool shift = ( (code & 0x0140) == 0x0140);
+        code &= ~0x0140; // cut "shift" bits
+
+        if (code <=9 && ! repeat && ! shift) {
+            pattern = code;
+        }
+
+    } else if (IR_type == 1) {
+        // Alex's IR
+        if (code == 0x807FF10E || code == 0x38D5F9F5) {
+            // Flash
+            pattern = 1;
+        } else if (code == 0x807FE916 || code == 0xADEB659D) {
+            // Strobe
+            pattern = 2;
+        } else if (code == 0x807FD926 || code == 0x92EBB33D) {
+            // Fade
+            pattern = 3;
+        } else if (code == 0x807FC936 || code == 0x7B758561) {
+            // Smooth
+            pattern = 4;
+        } else if (code == 0x9AF57A5F) {
+            // off
+            pattern = 0;
+            setColor(0, 0, 0);
+        } else if (code == 0x807FE11E || code == 0x7E087B19) {
+            // on
+            pattern = 0;
+            setColor(100, 100, 100);
+        }
     }
 
     irrecv.resume();
