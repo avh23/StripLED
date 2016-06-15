@@ -23,7 +23,7 @@ IRrecv irrecv(5); // GPIO5 = D3
 
 WiFiUDP client;
 
-int pattern = 3;
+int pattern = 4;
 
 const uint8_t PointCount = 3;   // for pattern "Points"
 const uint8_t PointsDim = 0;  // 0 = no trail, 256 = infinite trail
