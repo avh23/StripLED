@@ -27,7 +27,7 @@ IRrecv irrecv(5); // GPIO5 = D3
 
 WiFiUDP client;
 
-int pattern = 5;
+int pattern = 6;
 
 const uint8_t PointCount = 5;   // for pattern "Points"
 const uint8_t PointsDim = 0;  // 0 = no trail, 256 = infinite trail
@@ -50,6 +50,20 @@ uint8_t buffer[AtmoBufferSize];
 #define SMOOTH_STEPS 50 // Steps to take for smoothing colors
 #define SMOOTH_DELAY 4 // Delay between smoothing steps
 #define SMOOTH_BLOCK 0 // Block incoming colors while smoothing
+
+// settings for Fire2012
+// https://github.com/FastLED/FastLED/blob/master/examples/Fire2012/Fire2012.ino
+// COOLING: How much does the air cool as it rises?
+// Less cooling = taller flames.  More cooling = shorter flames.
+// Default 50, suggested range 20-100 
+#define COOLING 70
+// SPARKING: What chance (out of 255) is there that a new spark will be lit?
+// Higher chance = more roaring fire.  Lower chance = more flickery fire.
+// Default 120, suggested range 50-200.
+#define SPARKING 100
+static byte heat[PixelCount];
+bool gReverseDirection = true;     // reverse direction?
+
 
 byte nextColor[3];
 byte prevColor[3];
@@ -241,6 +255,37 @@ void loop() {
         }
         FastLED.show();
         delay(36);
+
+    } else if (pattern == 6) {    // Fire2012
+        // Step 1.  Cool down every cell a little
+        for( int i = 0; i < PixelCount; i++) {
+            heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / PixelCount) + 2));
+        }
+
+        // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+        for( int k= PixelCount - 1; k >= 2; k--) {
+            heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+        }
+
+        // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+        if( random8() < SPARKING ) {
+            int y = random8(7);
+            heat[y] = qadd8( heat[y], random8(160,255) );
+        }
+
+        // Step 4.  Map from heat cells to LED colors
+        for( int j = 0; j < PixelCount; j++) {
+            CRGB color = HeatColor( heat[j]);
+            int pixelnumber;
+            if( gReverseDirection ) {
+                pixelnumber = (PixelCount-1) - j;
+            } else {
+                pixelnumber = j;
+            }
+            leds[pixelnumber] = color;
+        }
+        FastLED.show();
+        delay(20);
 
     } else if (pattern == 0) {
         // AtmoOrb
