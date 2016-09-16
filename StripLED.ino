@@ -27,7 +27,7 @@ IRrecv irrecv(5); // GPIO5 = D3
 
 WiFiUDP client;
 
-int pattern = 6;
+int pattern = 7;
 
 const uint8_t PointCount = 5;   // for pattern "Points"
 const uint8_t PointsDim = 0;  // 0 = no trail, 256 = infinite trail
@@ -287,6 +287,15 @@ void loop() {
         FastLED.show();
         delay(20);
 
+    } else if (pattern == 7) { // random colors
+        // https://github.com/Resseguie/FastLED-Patterns/blob/master/fastled-patterns.ino
+
+        for(int i=0; i<PixelCount; i++){
+            leds[i] = Wheel(random(256));
+        }
+        FastLED.show();
+        delay(300);
+
     } else if (pattern == 0) {
         // AtmoOrb
         // https://github.com/ambilight-4-mediaportal/AtmoOrb/blob/master/Particle/Photon/AtmoOrb_UDP.ino
@@ -424,6 +433,20 @@ void clearSmoothColors()
     memset(prevColor, 0, sizeof(prevColor));
     memset(currentColor, 0, sizeof(nextColor));
     memset(nextColor, 0, sizeof(nextColor));
+}
+
+// Input a value 0 to 255 to get a color value.
+// The colours are a transition r - g - b - back to r.
+CRGB Wheel(byte WheelPos) {
+    if (WheelPos < 85) {
+        return CRGB(WheelPos * 3, 255 - WheelPos * 3, 0);
+    } else if (WheelPos < 170) {
+        WheelPos -= 85;
+        return CRGB(255 - WheelPos * 3, 0, WheelPos * 3);
+    } else {
+        WheelPos -= 170;
+        return CRGB(0, WheelPos * 3, 255 - WheelPos * 3);
+    }
 }
 
 
