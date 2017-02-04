@@ -44,24 +44,9 @@ enum statuus {
     AP_CONFIG
 };
 
-void SetRandomSeed()
-{
-    uint32_t seed;
-
-    // random works best with a seed that can use 31 bits
-    // analogRead on a unconnected pin tends toward less than four bits
-    seed = analogRead(0);
-    delay(1);
-
-    for (int shifts = 3; shifts < 31; shifts += 3)
-    {
-        seed ^= analogRead(0) << shifts;
-        delay(1);
-    }
-
-    // Serial.println(seed);
-    randomSeed(seed);
-}
+/*  ******************************************************************
+    ** SETUP *********************************************************
+    ******************************************************************  */
 
 void setup() {
     WiFiManager wifiManager;
@@ -103,20 +88,12 @@ void setup() {
     }
 }
 
-void initPixel (int i) {
-    pointpos[i] = random(PixelCount << 5);
-
-    // Ensure the point is not standing still
-    pointspd[i] = 0;
-    while (pointspd[i] == 0)
-        pointspd[i] = (int)random(2*PointsMaxSpeed+1) - PointsMaxSpeed;
-
-    pointcol[i] = CHSV(random(256), 128 + random(128), 150);
-}
-
-uint8_t h = 0;
+/*  ******************************************************************
+    ** LOOP **********************************************************
+    ******************************************************************  */
 
 void loop() {
+    static uint8_t h = 0;
     decode_results IRcode;
 
     ArduinoOTA.handle();
@@ -327,6 +304,21 @@ void loop() {
 
 }
 
+/*  ******************************************************************
+    ** FUNCTIONS *****************************************************
+    ******************************************************************  */
+
+void initPixel (int i) {
+    pointpos[i] = random(PixelCount << 5);
+
+    // Ensure the point is not standing still
+    pointspd[i] = 0;
+    while (pointspd[i] == 0)
+        pointspd[i] = (int)random(2*PointsMaxSpeed+1) - PointsMaxSpeed;
+
+    pointcol[i] = CHSV(random(256), 128 + random(128), 150);
+}
+
 void setColor(byte red, byte green, byte blue)
 {
     fill_solid(leds, PixelCount, CRGB(red, green, blue));
@@ -478,5 +470,24 @@ void showStatus(enum statuus s) {
 
     FastLED.show();
     delay(0.04*PixelCount);
+}
+
+void SetRandomSeed()
+{
+    uint32_t seed;
+
+    // random works best with a seed that can use 31 bits
+    // analogRead on a unconnected pin tends toward less than four bits
+    seed = analogRead(0);
+    delay(1);
+
+    for (int shifts = 3; shifts < 31; shifts += 3)
+    {
+        seed ^= analogRead(0) << shifts;
+        delay(1);
+    }
+
+    // Serial.println(seed);
+    randomSeed(seed);
 }
 
