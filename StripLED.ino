@@ -236,6 +236,12 @@ void loop() {
         leds[p++] = CRGB::White;
         reorderedShow();
         delay(100);
+
+    } else if (pattern == 10) {
+        // solid color for all LEDs
+        fill_solid(leds, PixelCount, CRGB::Green);
+        reorderedShow();
+        delay(1000);
         
     } else if (pattern == 0) {
         // AtmoOrb
