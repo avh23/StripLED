@@ -298,6 +298,15 @@ void loop() {
         FastLED.show();
         delay(300);
 
+    } else if (pattern == 8) {
+        // very simple "pattern" for testing
+        fill_solid(leds, PixelCount, CRGB::Black);
+        leds[0] = CRGB::Red;
+        leds[1] = CRGB::Green;
+        leds[2] = CRGB::Blue;
+        FastLED.show();
+        delay(100);
+
     } else if (pattern == 0) {
         // AtmoOrb
         // https://github.com/ambilight-4-mediaportal/AtmoOrb/blob/master/Particle/Photon/AtmoOrb_UDP.ino
