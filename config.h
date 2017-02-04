@@ -44,5 +44,8 @@ const uint8_t  AtmoLedsPerLed = 5;
 #define SPARKING 100
 bool gReverseDirection = true;     // reverse direction?
 
+// If WiFi isn't configured or doesn't connect, run as AP with this SSID/PW
 
+#define AP_NAME "StripLED"
+#define AP_PASS "blink"
 

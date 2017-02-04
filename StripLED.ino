@@ -9,6 +9,9 @@
 #include <ArduinoOTA.h>
 #include <ESP8266mDNS.h>
 #include <IRremoteESP8266.h>
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <WiFiManager.h>
 
 #include "config.h"
 
@@ -54,10 +57,18 @@ void SetRandomSeed()
 }
 
 void setup() {
-    WiFi.mode(WIFI_STA);
-    WiFi.config({10,1,0,123}, {10,1,0,1}, {255,255,255,0});
-    WiFi.begin("tabr.org", NULL);
-    WiFi.waitForConnectResult();
+    WiFiManager wifiManager;
+
+    wifiManager.setAPCallback([](WiFiManager *myWiFiManager) {
+            // show that AP mode has been entered
+            for (int i=0; i<PixelCount; i++) {
+                leds[i] = CRGB::Black;
+            }
+            leds[4] = CRGB::Blue;
+            FastLED.show();
+    });
+
+    wifiManager.autoConnect(AP_NAME, AP_PASS);
 
     client.beginMulticast(WiFi.localIP(), multicastIP, SERVER_PORT);
     // client.begin(SERVER_PORT);
