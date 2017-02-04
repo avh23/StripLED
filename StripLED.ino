@@ -37,6 +37,13 @@ unsigned long smoothMillis;
 // for "Flag"
 uint16_t flagpos = 0;
 
+enum statuus {
+    OTA_START,
+    OTA_DONE,
+    OTA_ERROR,
+    AP_CONFIG
+};
+
 void SetRandomSeed()
 {
     uint32_t seed;
@@ -60,12 +67,7 @@ void setup() {
     WiFiManager wifiManager;
 
     wifiManager.setAPCallback([](WiFiManager *myWiFiManager) {
-            // show that AP mode has been entered
-            for (int i=0; i<PixelCount; i++) {
-                leds[i] = CRGB::Black;
-            }
-            leds[4] = CRGB::Blue;
-            FastLED.show();
+            showStatus(AP_CONFIG);
     });
 
     wifiManager.autoConnect(AP_NAME, AP_PASS);
@@ -78,47 +80,13 @@ void setup() {
     irrecv.enableIRIn();
 
     ArduinoOTA.onStart([]() {
-            // Serial.println("Start");
-            // clear strip
-            for (int i=0; i<PixelCount; i++) {
-                leds[i] = CRGB::Black;
-            }
-            leds[1] = CRGB::Yellow;
-            FastLED.show();
-            delay(0.04*PixelCount);
+            showStatus(OTA_START);
             });
     ArduinoOTA.onEnd([]() {
-            // Serial.println("\nEnd");
-            leds[1] = CRGB::Black;
-            leds[2] = CRGB::Black;
-            leds[3] = CRGB::Green;
-            FastLED.show();
-            delay(0.04*PixelCount);
-            });
-    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-            // Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-            // int newprogress = progress / (total / 255);
-            // if ( newprogress != oldprogress ) {
-            //     strip.SetPixelColor(2, RgbColor((int)newprogress * 0.1));
-            //     strip.Show();
-            //     delay(0.04*PixelCount);
-            //     oldprogress = newprogress;
-            // }
-
+            showStatus(OTA_DONE);
             });
     ArduinoOTA.onError([](ota_error_t error) {
-            leds[1] = CRGB::Black;
-            leds[2] = CRGB::Red;
-            leds[3] = CRGB::Black;
-            FastLED.show();
-            delay(0.04*PixelCount);
-
-            Serial.printf("Error[%u]: ", error);
-            if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-            else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-            else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-            else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-            else if (error == OTA_END_ERROR) Serial.println("End Failed");
+            showStatus(OTA_ERROR);
             });
     // ArduinoOTA.setPassword("fastled");
     ArduinoOTA.begin();
@@ -485,5 +453,30 @@ void handleIR(decode_results *results) {
     irrecv.resume();
 }
 
+void showStatus(enum statuus s) {
+    // simple way to show current status (OTA Update, AP config,...) with LEDs
 
+    // Serial.print("Status ");
+    // Serial.println(s);
+
+    fill_solid(leds, PixelCount, CRGB::Black);
+
+    switch (s) {
+        case OTA_START:
+            leds[1] = CRGB::Yellow;
+            break;
+        case OTA_ERROR:
+            leds[2] = CRGB::Red;
+            break;
+        case OTA_DONE:
+            leds[3] = CRGB::Green;
+            break;
+        case AP_CONFIG:
+            leds[4] = CRGB::Blue;
+            break;
+    }
+
+    FastLED.show();
+    delay(0.04*PixelCount);
+}
 
