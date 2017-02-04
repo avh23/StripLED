@@ -3,7 +3,7 @@
 IPAddress multicastIP(239, 15, 18, 2);
 unsigned int orbID = 1;
 
-const uint16_t PixelCount = 30;
+const uint16_t PixelCount = 659;
 
 // 0 == Martin's Philips IR
 // 1 == Alex's Tween IR
@@ -11,13 +11,13 @@ const uint8_t IR_type = 1;
 
 // Each pixel needs ca 1mA even when black
 // also, the power-calculation of FastLED seems to be off by a factor of ~0.6
-const uint16_t maxMilliAmp = (600 - 0.9*PixelCount ) / 0.6;
+const uint16_t maxMilliAmp = 2000;
 
 IRrecv irrecv(5); // GPIO5 = D3
 
-int pattern = 7;
+int pattern = 4;
 
-const uint8_t PointCount = 5;   // for pattern "Points"
+const uint8_t PointCount = 50;   // for pattern "Points"
 const uint8_t PointsDim = 0;  // 0 = no trail, 256 = infinite trail
 const uint8_t PointsMaxSpeed = 15;
 const float   PointsAge = 2000;
