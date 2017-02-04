@@ -10,62 +10,20 @@
 #include <ESP8266mDNS.h>
 #include <IRremoteESP8266.h>
 
-#define SERVER_PORT 49692
-#define DISCOVERY_PORT 49692
-IPAddress multicastIP(239, 15, 18, 2);
-unsigned int orbID = 1;
-
-const uint16_t PixelCount = 30;
-
-// 0 == Martin's Philips IR
-// 1 == Alex's Tween IR
-const uint8_t IR_type = 1;
-
-// Each pixel needs ca 1mA even when black
-// also, the power-calculation of FastLED seems to be off by a factor of ~0.6
-const uint16_t maxMilliAmp = (600 - 0.9*PixelCount ) / 0.6;
-
-IRrecv irrecv(5); // GPIO5 = D3
+#include "config.h"
 
 WiFiUDP client;
 
-int pattern = 7;
-
-const uint8_t PointCount = 5;   // for pattern "Points"
-const uint8_t PointsDim = 0;  // 0 = no trail, 256 = infinite trail
-const uint8_t PointsMaxSpeed = 15;
-const float   PointsAge = 2000;
 int16_t pointpos[PointCount];
 int16_t pointspd[PointCount];
 CRGB pointcol[PointCount];
 
 CRGB leds[PixelCount+10];   // +10 to prevent stupid overflows
 
-// Settings for AtmoOrb
-const uint8_t  AtmoLeds = 1;
-const uint16_t AtmoFirstLed = 3;
-const uint8_t  AtmoLedsPerLed = 5;
 const uint8_t  AtmoBufferSize = 5 + 3*AtmoLeds; // 0xC0FFEE + Cmd + OrbID + RGB
-#define TIMEOUT_MS   500
 uint8_t buffer[AtmoBufferSize];
-// SMOOTHING SETTINGS
-#define SMOOTH_STEPS 50 // Steps to take for smoothing colors
-#define SMOOTH_DELAY 4 // Delay between smoothing steps
-#define SMOOTH_BLOCK 0 // Block incoming colors while smoothing
 
-// settings for Fire2012
-// https://github.com/FastLED/FastLED/blob/master/examples/Fire2012/Fire2012.ino
-// COOLING: How much does the air cool as it rises?
-// Less cooling = taller flames.  More cooling = shorter flames.
-// Default 50, suggested range 20-100 
-#define COOLING 70
-// SPARKING: What chance (out of 255) is there that a new spark will be lit?
-// Higher chance = more roaring fire.  Lower chance = more flickery fire.
-// Default 120, suggested range 50-200.
-#define SPARKING 100
 static byte heat[PixelCount];
-bool gReverseDirection = true;     // reverse direction?
-
 
 byte nextColor[3];
 byte prevColor[3];
