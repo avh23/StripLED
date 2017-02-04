@@ -49,3 +49,7 @@ bool gReverseDirection = true;     // reverse direction?
 #define AP_NAME "StripLED"
 #define AP_PASS "blink"
 
+// Support LED strips wired up in non-linear fashion?
+// modify reorderedShow() accordingly!
+#define REORDER 1
+

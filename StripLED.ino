@@ -22,6 +22,9 @@ int16_t pointspd[PointCount];
 CRGB pointcol[PointCount];
 
 CRGB leds[PixelCount+10];   // +10 to prevent stupid overflows
+#if REORDER
+CRGB orderedleds[PixelCount];
+#endif
 
 const uint8_t  AtmoBufferSize = 5 + 3*AtmoLeds; // 0xC0FFEE + Cmd + OrbID + RGB
 uint8_t buffer[AtmoBufferSize];
@@ -76,7 +79,11 @@ void setup() {
     // ArduinoOTA.setPassword("fastled");
     ArduinoOTA.begin();
 
+#if REORDER
+    FastLED.addLeds<NEOPIXEL, 3>(orderedleds, PixelCount);
+#else
     FastLED.addLeds<NEOPIXEL, 3>(leds, PixelCount);
+#endif
     FastLED.setMaxPowerInVoltsAndMilliamps(5, maxMilliAmp);
     FastLED.setCorrection(TypicalSMD5050);
     FastLED.setTemperature(DirectSunlight);
@@ -104,25 +111,25 @@ void loop() {
     if (pattern == 1) {
         // Strobe
         fill_solid(leds, PixelCount, CRGB::White);
-        FastLED.show();
+        reorderedShow();
         delay(2);
         fill_solid(leds, PixelCount, CRGB::Black);
-        FastLED.show();
+        reorderedShow();
         delay(48);
 
     } else if (pattern == 2) {
         // Color Strobe
         fill_solid(leds, PixelCount, CHSV(random(256), 128, 255));
-        FastLED.show();
+        reorderedShow();
         delay(2);
         fill_solid(leds, PixelCount, CRGB::Black);
-        FastLED.show();
+        reorderedShow();
         delay(48);
 
     } else if (pattern == 3) {
         // Moving Rainbow
         fill_rainbow(leds, PixelCount, h, -2);
-        FastLED.show();
+        reorderedShow();
         delay(40);
         h++;
 
@@ -134,7 +141,7 @@ void loop() {
         fill_solid(leds+((flagpos+5) % PixelCount), 5, CRGB::Yellow);
         fill_solid(leds+((flagpos+10) % PixelCount), 5, CRGB::Green);
 
-        FastLED.show();
+        reorderedShow();
         delay(50);
         flagpos++;
         if (flagpos == PixelCount) flagpos = 0;
@@ -169,7 +176,7 @@ void loop() {
                     pointpos[i] -= PixelCount << 5;
             }
         }
-        FastLED.show();
+        reorderedShow();
         delay(36);
 
     } else if (pattern == 6) {    // Fire2012
@@ -200,7 +207,7 @@ void loop() {
             }
             leds[pixelnumber] = color;
         }
-        FastLED.show();
+        reorderedShow();
         delay(20);
 
     } else if (pattern == 7) { // random colors
@@ -209,7 +216,7 @@ void loop() {
         for(int i=0; i<PixelCount; i++){
             leds[i] = Wheel(random(256));
         }
-        FastLED.show();
+        reorderedShow();
         delay(300);
 
     } else if (pattern == 8) {
@@ -322,7 +329,7 @@ void initPixel (int i) {
 void setColor(byte red, byte green, byte blue)
 {
     fill_solid(leds, PixelCount, CRGB(red, green, blue));
-    FastLED.show();
+    reorderedShow();
 }
 
 
@@ -491,3 +498,14 @@ void SetRandomSeed()
     randomSeed(seed);
 }
 
+void reorderedShow() {
+    // Swap some LED strips before sending the data
+    // Allows wiring them up in any order
+
+#if REORDER
+    // adapt this for your setup
+    memcpy(orderedleds, leds, PixelCount * sizeof(CRGB));
+#endif
+
+    FastLED.show();
+}
