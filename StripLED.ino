@@ -131,7 +131,7 @@ void loop() {
         // Moving Rainbow
         fill_rainbow(leds, PixelCount, h, -2);
         reorderedShow();
-        delay(40);
+        delay(10);
         h++;
 
     } else if (pattern == 5) {
