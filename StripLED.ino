@@ -1,5 +1,7 @@
 // SYSTEM_THREAD(ENABLED);
 #define FASTLED_ESP8266_RAW_PIN_ORDER
+#define FASTLED_ALLOW_INTERRUPTS 0
+#define FASTLED_INTERRUPT_RETRY_COUNT 0
 #include <FastLED.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
