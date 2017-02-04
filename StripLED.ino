@@ -101,6 +101,7 @@ void setup() {
 
 void loop() {
     static uint8_t h = 0;
+    static uint16_t p = 0;
     decode_results IRcode;
 
     ArduinoOTA.handle();
@@ -228,6 +229,14 @@ void loop() {
         FastLED.show();
         delay(100);
 
+    } else if (pattern == 9) {
+        // travelling white point to debug REORDER
+        if (p < 580 || p > 600) p=580;
+        fill_solid(leds, PixelCount, CRGB::Black);
+        leds[p++] = CRGB::White;
+        reorderedShow();
+        delay(100);
+        
     } else if (pattern == 0) {
         // AtmoOrb
         // https://github.com/ambilight-4-mediaportal/AtmoOrb/blob/master/Particle/Photon/AtmoOrb_UDP.ino
