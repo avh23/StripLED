@@ -511,6 +511,13 @@ void reorderedShow() {
     // Swap some LED strips before sending the data
     // Allows wiring them up in any order
 
+#if DEBUG_POWER
+    uint16_t power;
+    power = calculate_unscaled_power_mW(orderedleds, PixelCount) / 10000;
+    fill_solid(leds+100, power, CRGB::Yellow);
+    fill_solid(leds+100+power, 40-power, CRGB::Blue);
+#endif
+
 #if REORDER
     // adapt this for your setup
     memcpy(orderedleds, leds, PixelCount * sizeof(CRGB));

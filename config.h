@@ -53,3 +53,5 @@ bool gReverseDirection = true;     // reverse direction?
 // modify reorderedShow() accordingly!
 #define REORDER 1
 
+// show a "power usage bar"
+#define DEBUG_POWER 0
