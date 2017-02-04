@@ -23,7 +23,7 @@ CRGB pointcol[PointCount];
 
 CRGB leds[PixelCount+10];   // +10 to prevent stupid overflows
 #if REORDER
-CRGB orderedleds[PixelCount];
+CRGB orderedleds[PixelCount+10];
 #endif
 
 const uint8_t  AtmoBufferSize = 5 + 3*AtmoLeds; // 0xC0FFEE + Cmd + OrbID + RGB
@@ -520,7 +520,18 @@ void reorderedShow() {
 
 #if REORDER
     // adapt this for your setup
-    memcpy(orderedleds, leds, PixelCount * sizeof(CRGB));
+    memcpy(orderedleds, leds, S1 * sizeof(CRGB));
+    for (int i=0; i<L1; i++) {
+        orderedleds[S1+i] = leds[S1+L1-i-1];
+    }
+    memcpy(orderedleds+S1+L1, leds+S1+L1, L2 * sizeof(CRGB));
+    for (int i=0; i<L3; i++) {
+        orderedleds[S1+L1+L2+i] = leds[S1+L1+L2+L3-i-1];
+    }
+    for (int i=0; i<L4; i++) {
+        orderedleds[S1+L1+L2+L3+i] = leds[S1+L1+L2+L3+L4-i-1];
+    }
+
 #endif
 
     FastLED.show();

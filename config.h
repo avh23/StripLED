@@ -52,6 +52,12 @@ bool gReverseDirection = true;     // reverse direction?
 // Support LED strips wired up in non-linear fashion?
 // modify reorderedShow() accordingly!
 #define REORDER 1
+// length of individual strips
+#define S1 113
+#define L1 225
+#define L2 157
+#define L3 89
+#define L4 76
 
 // show a "power usage bar"
 #define DEBUG_POWER 0
