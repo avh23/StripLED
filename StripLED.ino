@@ -226,7 +226,7 @@ void loop() {
         leds[0] = CRGB::Red;
         leds[1] = CRGB::Green;
         leds[2] = CRGB::Blue;
-        FastLED.show();
+        reorderedShow();
         delay(100);
 
     } else if (pattern == 9) {
@@ -484,7 +484,7 @@ void showStatus(enum statuus s) {
             break;
     }
 
-    FastLED.show();
+    reorderedShow();
     delay(0.04*PixelCount);
 }
 
