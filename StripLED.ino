@@ -471,16 +471,16 @@ void showStatus(enum statuus s) {
 
     switch (s) {
         case OTA_START:
-            leds[1] = CRGB::Yellow;
+            leds[61] = CRGB::Yellow;
             break;
         case OTA_ERROR:
-            leds[2] = CRGB::Red;
+            leds[62] = CRGB::Red;
             break;
         case OTA_DONE:
-            leds[3] = CRGB::Green;
+            leds[63] = CRGB::Green;
             break;
         case AP_CONFIG:
-            leds[4] = CRGB::Blue;
+            leds[64] = CRGB::Blue;
             break;
     }
 
