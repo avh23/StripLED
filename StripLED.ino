@@ -332,7 +332,7 @@ void initPixel (int i) {
     while (pointspd[i] == 0)
         pointspd[i] = (int)random(2*PointsMaxSpeed+1) - PointsMaxSpeed;
 
-    pointcol[i] = CHSV(random(256), 128 + random(128), 150);
+    pointcol[i] = CHSV(random(256), 128 + random(128), 255);
 }
 
 void setColor(byte red, byte green, byte blue)
