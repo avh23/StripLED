@@ -12,6 +12,8 @@
 
 WiFiUDP client;
 
+IRrecv irrecv(PIN_IR);
+
 const uint8_t  AtmoBufferSize = 5 + 3*AtmoLeds; // 0xC0FFEE + Cmd + OrbID + RGB
 uint8_t buffer[AtmoBufferSize];
 
@@ -38,7 +40,7 @@ void setup() {
     client.beginMulticast(WiFi.localIP(), multicastIP, SERVER_PORT);
     // client.begin(SERVER_PORT);
 
-    Serial.begin(115200);
+    Serial.begin(serialBaud);
 
     irrecv.enableIRIn();
 

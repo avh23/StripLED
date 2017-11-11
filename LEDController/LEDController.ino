@@ -34,7 +34,7 @@ uint16_t flagpos = 0;
 
 void setup() {
 
-    Serial.begin(115200);
+    Serial.begin(serialBaud);
 
 #if REORDER
     FastLED.addLeds<NEOPIXEL, 3>(orderedleds, PixelCount);

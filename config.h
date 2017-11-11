@@ -1,8 +1,13 @@
+// speed of communication between ESPs
+const uint32_t serialBaud = 115200;
+
+// "AtmoOrb" server
 #define SERVER_PORT 49692
 #define DISCOVERY_PORT 49692
 IPAddress multicastIP(239, 15, 18, 2);
 unsigned int orbID = 1;
 
+// Number of connected LEDs
 const uint16_t PixelCount = 659;
 
 // 0 == Martin's Philips IR
@@ -13,11 +18,14 @@ const uint8_t IR_type = 1;
 // also, the power-calculation of FastLED seems to be off by a factor of ~0.6
 const uint16_t maxMilliAmp = 2000;
 
-IRrecv irrecv(5); // GPIO5 = D3
+// Which pin is the IR-sensor connected to
+#define PIN_IR 5   // GPIO5 = D3
 
+// starting pattern
 int pattern = 4;
 
-const uint8_t PointCount = 50;   // for pattern "Points"
+// Configuration for pattern "Points"
+const uint8_t PointCount = 50;
 const uint8_t PointsDim = 0;  // 0 = no trail, 256 = infinite trail
 const uint8_t PointsMaxSpeed = 15;
 const float   PointsAge = 2000;
