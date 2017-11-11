@@ -14,6 +14,7 @@ WiFiUDP client;
 
 IRrecv irrecv(PIN_IR);
 
+IPAddress multicastIP(239, 15, 18, 2);
 const uint8_t  AtmoBufferSize = 5 + 3*AtmoLeds; // 0xC0FFEE + Cmd + OrbID + RGB
 uint8_t buffer[AtmoBufferSize];
 
@@ -126,7 +127,6 @@ void handleIR(decode_results *results) {
             pattern = 4;
         } else if (code == 0x9AF57A5F) {
             // off
-            sendCmd('r', 0);
             sendCmd('b', 1);
         } else if (code == 0x807FE11E || code == 0x7E087B19) {
             // on
@@ -222,7 +222,6 @@ void sendColor(uint32_t param) {
 void showStatus(enum statuus s) {
     // simple way to show current status (OTA Update, AP config,...) with LEDs
 
-    sendCmd('r', 0);
     sendCmd('b', 1);
 
     switch (s) {

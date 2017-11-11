@@ -6,8 +6,6 @@
 
 #include "config.h"
 
-WiFiUDP client;
-
 int16_t pointpos[PointCount];
 int16_t pointspd[PointCount];
 CRGB pointcol[PointCount];
@@ -16,6 +14,8 @@ CRGB leds[PixelCount+10];   // +10 to prevent stupid overflows
 #if REORDER
 CRGB orderedleds[PixelCount+10];
 #endif
+
+uint8_t runPatterns = 1;
 
 static byte heat[PixelCount];
 
@@ -60,139 +60,146 @@ void loop() {
     static uint8_t h = 0;
     static uint16_t p = 0;
 
-    if (pattern == 1) {
-        // Strobe
-        fill_solid(leds, PixelCount, CRGB::White);
-        reorderedShow();
-        delay(2);
-        fill_solid(leds, PixelCount, CRGB::Black);
-        reorderedShow();
-        delay(48);
+    handleSerial();
 
-    } else if (pattern == 2) {
-        // Color Strobe
-        fill_solid(leds, PixelCount, CHSV(random(256), 128, 255));
-        reorderedShow();
-        delay(2);
-        fill_solid(leds, PixelCount, CRGB::Black);
-        reorderedShow();
-        delay(48);
-
-    } else if (pattern == 3) {
-        // Moving Rainbow
-        fill_rainbow(leds, PixelCount, h, -2);
-        reorderedShow();
-        delay(10);
-        h++;
-
-    } else if (pattern == 5) {
-        // Flagge
-        fill_solid(leds, PixelCount, CRGB::Black);
-
-        fill_solid(leds+(flagpos % PixelCount), 5, CRGB::Red);
-        fill_solid(leds+((flagpos+5) % PixelCount), 5, CRGB::Yellow);
-        fill_solid(leds+((flagpos+10) % PixelCount), 5, CRGB::Green);
-
-        reorderedShow();
-        delay(50);
-        flagpos++;
-        if (flagpos == PixelCount) flagpos = 0;
-
-    } else if (pattern == 4) {
-        // Points
-        if (PointsDim == 0) {
+    if (runPatterns == 1) {
+        if (pattern == 1) {
+            // Strobe
+            fill_solid(leds, PixelCount, CRGB::White);
+            reorderedShow();
+            delay(2);
             fill_solid(leds, PixelCount, CRGB::Black);
-        } else {
-            for (int i=0; i<PixelCount; i++) {
-                leds[i].nscale8(PointsDim);
-            }
-        }
-        for (int i=0; i<PointCount; i++) {
-            uint16_t curpos = pointpos[i] >> 5;
+            reorderedShow();
+            delay(48);
 
-            CRGB curcolor = CRGB::Black;
-            for (int j=0; j<PointCount; j++) {
-                if (curpos == (pointpos[j] >> 5)) {
-                    curcolor += pointcol[j];
+        } else if (pattern == 2) {
+            // Color Strobe
+            fill_solid(leds, PixelCount, CHSV(random(256), 128, 255));
+            reorderedShow();
+            delay(2);
+            fill_solid(leds, PixelCount, CRGB::Black);
+            reorderedShow();
+            delay(48);
+
+        } else if (pattern == 3) {
+            // Moving Rainbow
+            fill_rainbow(leds, PixelCount, h, -2);
+            reorderedShow();
+            delay(10);
+            h++;
+
+        } else if (pattern == 5) {
+            // Flagge
+            fill_solid(leds, PixelCount, CRGB::Black);
+
+            fill_solid(leds+(flagpos % PixelCount), 5, CRGB::Red);
+            fill_solid(leds+((flagpos+5) % PixelCount), 5, CRGB::Yellow);
+            fill_solid(leds+((flagpos+10) % PixelCount), 5, CRGB::Green);
+
+            reorderedShow();
+            delay(50);
+            flagpos++;
+            if (flagpos == PixelCount) flagpos = 0;
+
+        } else if (pattern == 4) {
+            // Points
+            if (PointsDim == 0) {
+                fill_solid(leds, PixelCount, CRGB::Black);
+            } else {
+                for (int i=0; i<PixelCount; i++) {
+                    leds[i].nscale8(PointsDim);
                 }
             }
-            leds[curpos] = curcolor;
+            for (int i=0; i<PointCount; i++) {
+                uint16_t curpos = pointpos[i] >> 5;
 
-            if (random(PointsAge) < 1) {
-                initPixel(i);
-            } else {
-                pointpos[i] += pointspd[i];
-                if (pointpos[i] < 0)
-                    pointpos[i] += PixelCount << 5;
-                else if (pointpos[i] >= PixelCount << 5)
-                    pointpos[i] -= PixelCount << 5;
+                CRGB curcolor = CRGB::Black;
+                for (int j=0; j<PointCount; j++) {
+                    if (curpos == (pointpos[j] >> 5)) {
+                        curcolor += pointcol[j];
+                    }
+                }
+                leds[curpos] = curcolor;
+
+                if (random(PointsAge) < 1) {
+                    initPixel(i);
+                } else {
+                    pointpos[i] += pointspd[i];
+                    if (pointpos[i] < 0)
+                        pointpos[i] += PixelCount << 5;
+                    else if (pointpos[i] >= PixelCount << 5)
+                        pointpos[i] -= PixelCount << 5;
+                }
             }
-        }
-        reorderedShow();
-        delay(36);
+            reorderedShow();
+            delay(36);
 
-    } else if (pattern == 6) {    // Fire2012
-        // Step 1.  Cool down every cell a little
-        for( int i = 0; i < PixelCount; i++) {
-            heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / PixelCount) + 2));
-        }
-
-        // Step 2.  Heat from each cell drifts 'up' and diffuses a little
-        for( int k= PixelCount - 1; k >= 2; k--) {
-            heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
-        }
-
-        // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
-        if( random8() < SPARKING ) {
-            int y = random8(7);
-            heat[y] = qadd8( heat[y], random8(160,255) );
-        }
-
-        // Step 4.  Map from heat cells to LED colors
-        for( int j = 0; j < PixelCount; j++) {
-            CRGB color = HeatColor( heat[j]);
-            int pixelnumber;
-            if( gReverseDirection ) {
-                pixelnumber = (PixelCount-1) - j;
-            } else {
-                pixelnumber = j;
+        } else if (pattern == 6) {    // Fire2012
+            // Step 1.  Cool down every cell a little
+            for( int i = 0; i < PixelCount; i++) {
+                heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / PixelCount) + 2));
             }
-            leds[pixelnumber] = color;
+
+            // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+            for( int k= PixelCount - 1; k >= 2; k--) {
+                heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+            }
+
+            // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+            if( random8() < SPARKING ) {
+                int y = random8(7);
+                heat[y] = qadd8( heat[y], random8(160,255) );
+            }
+
+            // Step 4.  Map from heat cells to LED colors
+            for( int j = 0; j < PixelCount; j++) {
+                CRGB color = HeatColor( heat[j]);
+                int pixelnumber;
+                if( gReverseDirection ) {
+                    pixelnumber = (PixelCount-1) - j;
+                } else {
+                    pixelnumber = j;
+                }
+                leds[pixelnumber] = color;
+            }
+            reorderedShow();
+            delay(20);
+
+        } else if (pattern == 7) { // random colors
+            // https://github.com/Resseguie/FastLED-Patterns/blob/master/fastled-patterns.ino
+
+            for(int i=0; i<PixelCount; i++){
+                leds[i] = Wheel(random(256));
+            }
+            reorderedShow();
+            delay(300);
+
+        } else if (pattern == 8) {
+            // very simple "pattern" for testing
+            fill_solid(leds, PixelCount, CRGB::Black);
+            leds[0] = CRGB::Red;
+            leds[1] = CRGB::Green;
+            leds[2] = CRGB::Blue;
+            reorderedShow();
+            delay(100);
+
+        } else if (pattern == 9) {
+            // travelling white point to debug REORDER
+            if (p < 580 || p > 600) p=580;
+            fill_solid(leds, PixelCount, CRGB::Black);
+            leds[p++] = CRGB::White;
+            reorderedShow();
+            delay(100);
+
+        } else if (pattern == 10) {
+            // solid color for all LEDs
+            fill_solid(leds, PixelCount, CRGB::Green);
+            reorderedShow();
+            delay(1000);
         }
-        reorderedShow();
-        delay(20);
-
-    } else if (pattern == 7) { // random colors
-        // https://github.com/Resseguie/FastLED-Patterns/blob/master/fastled-patterns.ino
-
-        for(int i=0; i<PixelCount; i++){
-            leds[i] = Wheel(random(256));
-        }
-        reorderedShow();
-        delay(300);
-
-    } else if (pattern == 8) {
-        // very simple "pattern" for testing
-        fill_solid(leds, PixelCount, CRGB::Black);
-        leds[0] = CRGB::Red;
-        leds[1] = CRGB::Green;
-        leds[2] = CRGB::Blue;
-        reorderedShow();
-        delay(100);
-
-    } else if (pattern == 9) {
-        // travelling white point to debug REORDER
-        if (p < 580 || p > 600) p=580;
-        fill_solid(leds, PixelCount, CRGB::Black);
-        leds[p++] = CRGB::White;
-        reorderedShow();
-        delay(100);
-
-    } else if (pattern == 10) {
-        // solid color for all LEDs
-        fill_solid(leds, PixelCount, CRGB::Green);
-        reorderedShow();
-        delay(1000);
+    } else {
+        // not running right now, just wait a bit
+        delay(10);
     }
 
 }
@@ -200,6 +207,62 @@ void loop() {
 /*  ******************************************************************
     ** FUNCTIONS *****************************************************
     ******************************************************************  */
+
+void handleSerial() {
+    if (Serial.available() < 3) return;
+
+    byte start = Serial.read();
+    byte cmd   = Serial.read();
+    byte param = Serial.read();
+
+    if (start != '!') {
+        // bad input, flush buffer
+        while (Serial.available() > 0) Serial.read();
+        return;
+    }
+
+    if (cmd == 'b') {   // blank
+        runPatterns = 0;
+        fill_solid(leds, PixelCount, CRGB::Black);
+        reorderedShow();
+    } else if (cmd == 'r') {    // run
+        runPatterns = param;
+    } else if (cmd == 'p') {    // pattern
+        pattern = param;
+    } else if (cmd == 's') {    // set color
+        // wait for color values to be sent
+        delay(10);
+        if (Serial.available() > 2) {
+            byte red = Serial.read();
+            byte grn = Serial.read();
+            byte blu = Serial.read();
+            runPatterns = 0;
+            setColor(red, grn, blu);
+        } else {
+            // bad input, flush buffer
+            while (Serial.available() > 0) Serial.read();
+        }
+    } else if (cmd == 'd') {    // directly set pixel
+        // wait for color values to be sent
+        delay(10);
+        if (Serial.available() > 2) {
+            byte red = Serial.read();
+            byte grn = Serial.read();
+            byte blu = Serial.read();
+            runPatterns = 0;
+            leds[param] = CRGB(red, grn, blu);
+        } else {
+            // bad input, flush buffer
+            while (Serial.available() > 0) Serial.read();
+        }
+    } else {
+        // bad input, flush buffer
+        while (Serial.available() > 0) Serial.read();
+    }
+
+
+}
+
 
 void initPixel (int i) {
     pointpos[i] = random(PixelCount << 5);

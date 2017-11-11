@@ -4,7 +4,6 @@ const uint32_t serialBaud = 115200;
 // "AtmoOrb" server
 #define SERVER_PORT 49692
 #define DISCOVERY_PORT 49692
-IPAddress multicastIP(239, 15, 18, 2);
 unsigned int orbID = 1;
 
 // Number of connected LEDs
