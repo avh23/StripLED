@@ -32,6 +32,8 @@ enum statuus {
 void setup() {
     WiFiManager wifiManager;
 
+    Serial.begin(serialBaud);
+
     wifiManager.setAPCallback([](WiFiManager *myWiFiManager) {
             showStatus(AP_CONFIG);
     });
@@ -40,8 +42,6 @@ void setup() {
 
     client.beginMulticast(WiFi.localIP(), multicastIP, SERVER_PORT);
     // client.begin(SERVER_PORT);
-
-    Serial.begin(serialBaud);
 
     irrecv.enableIRIn();
 
