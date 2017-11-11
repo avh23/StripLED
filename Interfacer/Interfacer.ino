@@ -70,6 +70,8 @@ void loop() {
     if (irrecv.decode(&IRcode))
         handleIR(&IRcode);
 
+    handleAtmo();
+
     delay(10);
 }
 
@@ -136,14 +138,73 @@ void handleIR(decode_results *results) {
 }
 
 
+void handleAtmo() {
+    // AtmoOrb
+    // https://github.com/ambilight-4-mediaportal/AtmoOrb/blob/master/Particle/Photon/AtmoOrb_UDP.ino
+    int packetSize = client.parsePacket();
+
+    if (packetSize == AtmoBufferSize) {
+        client.read(buffer, AtmoBufferSize);
+        //client.flush();
+        unsigned int i = 0;
+
+        // Look for 0xC0FFEE
+        if(buffer[i++] == 0xC0 && buffer[i++] == 0xFF && buffer[i++] == 0xEE)
+        {
+            byte commandOptions = buffer[i++];
+            byte rcvOrbID = buffer[i++];
+
+            // Command options
+            // 1 = force off
+            // 2 = use lamp smoothing and validate by Orb ID
+            // 4 = validate by Orb ID
+            // 8 = discovery
+            if(commandOptions == 1)
+            {
+                // Orb ID 0 = turn off all lights
+                // Otherwise turn off selectively
+                if(rcvOrbID == 0 || rcvOrbID == orbID)
+                {
+                    sendCmd('b', 1);
+                }
+
+                return;
+            }
+            else if(commandOptions == 2 or commandOptions == 4)
+            {
+                if(rcvOrbID != orbID)
+                    return;
+
+                byte red =  buffer[i++];
+                byte green =  buffer[i++];
+                byte blue =  buffer[i++];
+
+                sendCmd('s', 0);
+                sendColor(((uint32_t)red << 16) + ((uint32_t)green << 8) + blue);
+            }
+            else if(commandOptions == 8)
+            {
+                // Respond to remote IP address with Orb ID
+                IPAddress remoteIP = client.remoteIP();
+
+                client.beginPacket(remoteIP, client.remotePort());
+                client.write(orbID);
+                client.endPacket();
+
+                return;
+            }
+        }
+    }
+}
+
 void sendCmd(char cmd, uint8_t param) {
     /*
        Send command to other ESP
        Available commands:
-       b: blank (black)
-       r 0/1: stop/run
+       b 0: blank (black)
+       r 0/1: run/stop
        p x: set pattern x
-       s x: set color
+       s 0 c: set solid color
        d l c: directly set color c of led l
      */
     Serial.print('!');
