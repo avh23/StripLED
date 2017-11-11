@@ -9,6 +9,8 @@
 #include <WiFiManager.h>
 #include <FS.h>
 #include <EEPROM.h>
+#include <FastLED.h>
+FASTLED_USING_NAMESPACE
 
 #include "config.h"
 
@@ -31,23 +33,24 @@ enum statuus {
 
 typedef void (*Pattern)();
 typedef struct {
-  Pattern pattern;
+  uint8_t number;
   String name;
 } PatternAndName;
 typedef PatternAndName PatternAndNameList[];
 
-// List of patterns to cycle through.  Each is defined as a separate function below.
+// List of patterns to cycle through
+const uint8_t patternCount = 10;
 PatternAndNameList patterns = {
-  { colorwaves, "Color Waves" },
-  { palettetest, "Palette Test" },
-  { pride, "Pride" },
-  { rainbow, "Rainbow" },
-  { rainbowWithGlitter, "Rainbow With Glitter" },
-  { confetti, "Confetti" },
-  { sinelon, "Sinelon" },
-  { juggle, "Juggle" },
-  { bpm, "BPM" },
-  { showSolidColor, "Solid Color" },
+  { 1, "Strobe" },
+  { 2, "Color Strobe" },
+  { 3, "Moving Rainbow" },
+  { 5, "Flag" },
+  { 4, "Points" },
+  { 6, "Fire2012" },
+  { 7, "Random Colors" },
+  { 8, "Test" },
+  { 9, "Travelling Point" },
+  { 10, "Solid Color" },
 };
 
 const uint8_t brightnessCount = 5;
@@ -57,7 +60,6 @@ uint8_t brightness = brightnessMap[brightnessIndex];
 
 uint8_t power = 1;
 
-const uint8_t patternCount = ARRAY_SIZE(patterns);
 
 /*  ******************************************************************
     ** SETUP *********************************************************
@@ -342,6 +344,12 @@ void sendColor(uint32_t param) {
     Serial.print( (param & (0x000000ff))      );
 }
 
+void sendColor(uint8_t r, uint8_t g, uint8_t b) {
+    Serial.print((char)r);
+    Serial.print((char)g);
+    Serial.print((char)b);
+}
+
 
 void showStatus(enum statuus s) {
     // simple way to show current status (OTA Update, AP config,...) with LEDs
@@ -473,11 +481,6 @@ void setSolidColor(CRGB color)
 void setSolidColor(uint8_t r, uint8_t g, uint8_t b)
 {
   solidColor = CRGB(r, g, b);
-
-  EEPROM.write(2, r);
-  EEPROM.write(3, g);
-  EEPROM.write(4, b);
-
   setPattern(patternCount - 1);
 }
 
@@ -494,11 +497,6 @@ void adjustPattern(bool up)
     currentPatternIndex = patternCount - 1;
   if (currentPatternIndex >= patternCount)
     currentPatternIndex = 0;
-
-  if (autoplayEnabled) {
-    EEPROM.write(1, currentPatternIndex);
-    EEPROM.commit();
-  }
 }
 
 void setPattern(int value)
@@ -511,24 +509,7 @@ void setPattern(int value)
 
   currentPatternIndex = value;
 
-  if (autoplayEnabled == 0) {
-    EEPROM.write(1, currentPatternIndex);
-    EEPROM.commit();
-  }
-}
-
-void setPalette(int value)
-{
-  // don't wrap around at the ends
-  if (value < 0)
-    value = 0;
-  else if (value >= paletteCount)
-    value = paletteCount - 1;
-
-  currentPaletteIndex = value;
-
-  EEPROM.write(5, currentPaletteIndex);
-  EEPROM.commit();
+  sendCmd('p', patterns[currentPatternIndex].number);
 }
 
 // adjust the brightness, and wrap around at the ends
@@ -548,9 +529,6 @@ void adjustBrightness(bool up)
   brightness = brightnessMap[brightnessIndex];
 
   FastLED.setBrightness(brightness);
-
-  EEPROM.write(0, brightness);
-  EEPROM.commit();
 }
 
 void setBrightness(int value)
@@ -563,13 +541,10 @@ void setBrightness(int value)
   brightness = value;
 
   FastLED.setBrightness(brightness);
-
-  EEPROM.write(0, brightness);
-  EEPROM.commit();
 }
 
-void showSolidColor()
-{
-  fill_solid(leds, NUM_LEDS, solidColor);
+void showSolidColor() {
+    sendCmd('s', 0);
+    sendColor(solidColor.r, solidColor.g, solidColor.b);
 }
 
