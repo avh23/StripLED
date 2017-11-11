@@ -60,6 +60,10 @@ uint8_t brightness = brightnessMap[brightnessIndex];
 
 uint8_t power = 1;
 
+uint8_t currentPatternIndex = 0;
+uint8_t currentPaletteIndex = 0;
+CRGB solidColor = CRGB::Blue;
+
 
 /*  ******************************************************************
     ** SETUP *********************************************************
@@ -168,8 +172,8 @@ void setup() {
 
     server.on("/palette", HTTP_POST, []() {
             String value = server.arg("value");
-            setPalette(value.toInt());
-            sendPalette();
+            //setPalette(value.toInt());
+            //sendPalette();
             });
 
     server.serveStatic("/index.htm", SPIFFS, "/index.htm");
@@ -391,7 +395,7 @@ void sendAll()
 
   json += ",\"currentPalette\":{";
   json += "\"index\":" + String(currentPaletteIndex);
-  json += ",\"name\":\"" + paletteNames[currentPaletteIndex] + "\"}";
+  json += ",\"name\":\"" + String("not supported") + "\"}";
 
   json += ",\"solidColor\":{";
   json += "\"r\":" + String(solidColor.r);
@@ -409,12 +413,6 @@ void sendAll()
   json += "]";
 
   json += ",\"palettes\":[";
-  for (uint8_t i = 0; i < paletteCount; i++)
-  {
-    json += "\"" + paletteNames[i] + "\"";
-    if (i < paletteCount - 1)
-      json += ",";
-  }
   json += "]";
 
   json += "}";
@@ -444,7 +442,7 @@ void sendPalette()
 {
   String json = "{";
   json += "\"index\":" + String(currentPaletteIndex);
-  json += ",\"name\":\"" + paletteNames[currentPaletteIndex] + "\"";
+  json += ",\"name\":\"" + String("not supported") + "\"";
   json += "}";
   server.send(200, "text/json", json);
   json = String();
