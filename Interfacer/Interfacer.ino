@@ -7,6 +7,8 @@
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>
+#include <FS.h>
+#include <EEPROM.h>
 
 #include "config.h"
 
@@ -18,12 +20,44 @@ IPAddress multicastIP(239, 15, 18, 2);
 const uint8_t  AtmoBufferSize = 5 + 3*AtmoLeds; // 0xC0FFEE + Cmd + OrbID + RGB
 uint8_t buffer[AtmoBufferSize];
 
+ESP8266WebServer server(80);
+
 enum statuus {
     OTA_START,
     OTA_DONE,
     OTA_ERROR,
     AP_CONFIG
 };
+
+typedef void (*Pattern)();
+typedef struct {
+  Pattern pattern;
+  String name;
+} PatternAndName;
+typedef PatternAndName PatternAndNameList[];
+
+// List of patterns to cycle through.  Each is defined as a separate function below.
+PatternAndNameList patterns = {
+  { colorwaves, "Color Waves" },
+  { palettetest, "Palette Test" },
+  { pride, "Pride" },
+  { rainbow, "Rainbow" },
+  { rainbowWithGlitter, "Rainbow With Glitter" },
+  { confetti, "Confetti" },
+  { sinelon, "Sinelon" },
+  { juggle, "Juggle" },
+  { bpm, "BPM" },
+  { showSolidColor, "Solid Color" },
+};
+
+const uint8_t brightnessCount = 5;
+uint8_t brightnessMap[brightnessCount] = { 16, 32, 64, 128, 255 };
+int brightnessIndex = 0;
+uint8_t brightness = brightnessMap[brightnessIndex];
+
+uint8_t power = 1;
+
+const uint8_t patternCount = ARRAY_SIZE(patterns);
 
 /*  ******************************************************************
     ** SETUP *********************************************************
@@ -57,6 +91,94 @@ void setup() {
     // ArduinoOTA.setPassword("fastled");
     ArduinoOTA.begin();
 
+    //EEPROM.begin(512);
+    //loadSettings();
+
+    server.on("/all", HTTP_GET, []() {
+            sendAll();
+            });
+
+    server.on("/power", HTTP_GET, []() {
+            sendPower();
+            });
+
+    server.on("/power", HTTP_POST, []() {
+            String value = server.arg("value");
+            setPower(value.toInt());
+            sendPower();
+            });
+
+    server.on("/solidColor", HTTP_GET, []() {
+            sendSolidColor();
+            });
+
+    server.on("/solidColor", HTTP_POST, []() {
+            String r = server.arg("r");
+            String g = server.arg("g");
+            String b = server.arg("b");
+            setSolidColor(r.toInt(), g.toInt(), b.toInt());
+            sendSolidColor();
+            });
+
+    server.on("/pattern", HTTP_GET, []() {
+            sendPattern();
+            });
+
+    server.on("/pattern", HTTP_POST, []() {
+            String value = server.arg("value");
+            setPattern(value.toInt());
+            sendPattern();
+            });
+
+    server.on("/patternUp", HTTP_POST, []() {
+            adjustPattern(true);
+            sendPattern();
+            });
+
+    server.on("/patternDown", HTTP_POST, []() {
+            adjustPattern(false);
+            sendPattern();
+            });
+
+    server.on("/brightness", HTTP_GET, []() {
+            sendBrightness();
+            });
+
+    server.on("/brightness", HTTP_POST, []() {
+            String value = server.arg("value");
+            setBrightness(value.toInt());
+            sendBrightness();
+            });
+
+    server.on("/brightnessUp", HTTP_POST, []() {
+            adjustBrightness(true);
+            sendBrightness();
+            });
+
+    server.on("/brightnessDown", HTTP_POST, []() {
+            adjustBrightness(false);
+            sendBrightness();
+            });
+
+    server.on("/palette", HTTP_GET, []() {
+            sendPalette();
+            });
+
+    server.on("/palette", HTTP_POST, []() {
+            String value = server.arg("value");
+            setPalette(value.toInt());
+            sendPalette();
+            });
+
+    server.serveStatic("/index.htm", SPIFFS, "/index.htm");
+    server.serveStatic("/fonts", SPIFFS, "/fonts", "max-age=86400");
+    server.serveStatic("/js", SPIFFS, "/js");
+    server.serveStatic("/css", SPIFFS, "/css", "max-age=86400");
+    server.serveStatic("/images", SPIFFS, "/images", "max-age=86400");
+    server.serveStatic("/", SPIFFS, "/index.htm");
+
+    server.begin();
+
 }
 
 /*  ******************************************************************
@@ -67,6 +189,8 @@ void loop() {
     decode_results IRcode;
 
     ArduinoOTA.handle();
+
+    server.handleClient();
 
     if (irrecv.decode(&IRcode))
         handleIR(&IRcode);
@@ -243,5 +367,209 @@ void showStatus(enum statuus s) {
             break;
     }
 
+}
+
+
+void sendAll()
+{
+  String json = "{";
+
+  json += "\"power\":" + String(power) + ",";
+  json += "\"brightness\":" + String(brightness) + ",";
+
+  json += "\"currentPattern\":{";
+  json += "\"index\":" + String(currentPatternIndex);
+  json += ",\"name\":\"" + patterns[currentPatternIndex].name + "\"}";
+
+  json += ",\"currentPalette\":{";
+  json += "\"index\":" + String(currentPaletteIndex);
+  json += ",\"name\":\"" + paletteNames[currentPaletteIndex] + "\"}";
+
+  json += ",\"solidColor\":{";
+  json += "\"r\":" + String(solidColor.r);
+  json += ",\"g\":" + String(solidColor.g);
+  json += ",\"b\":" + String(solidColor.b);
+  json += "}";
+
+  json += ",\"patterns\":[";
+  for (uint8_t i = 0; i < patternCount; i++)
+  {
+    json += "\"" + patterns[i].name + "\"";
+    if (i < patternCount - 1)
+      json += ",";
+  }
+  json += "]";
+
+  json += ",\"palettes\":[";
+  for (uint8_t i = 0; i < paletteCount; i++)
+  {
+    json += "\"" + paletteNames[i] + "\"";
+    if (i < paletteCount - 1)
+      json += ",";
+  }
+  json += "]";
+
+  json += "}";
+
+  server.send(200, "text/json", json);
+  json = String();
+}
+
+void sendPower()
+{
+  String json = String(power);
+  server.send(200, "text/json", json);
+  json = String();
+}
+
+void sendPattern()
+{
+  String json = "{";
+  json += "\"index\":" + String(currentPatternIndex);
+  json += ",\"name\":\"" + patterns[currentPatternIndex].name + "\"";
+  json += "}";
+  server.send(200, "text/json", json);
+  json = String();
+}
+
+void sendPalette()
+{
+  String json = "{";
+  json += "\"index\":" + String(currentPaletteIndex);
+  json += ",\"name\":\"" + paletteNames[currentPaletteIndex] + "\"";
+  json += "}";
+  server.send(200, "text/json", json);
+  json = String();
+}
+
+void sendBrightness()
+{
+  String json = String(brightness);
+  server.send(200, "text/json", json);
+  json = String();
+}
+
+void sendSolidColor()
+{
+  String json = "{";
+  json += "\"r\":" + String(solidColor.r);
+  json += ",\"g\":" + String(solidColor.g);
+  json += ",\"b\":" + String(solidColor.b);
+  json += "}";
+  server.send(200, "text/json", json);
+  json = String();
+}
+
+void setPower(uint8_t value)
+{
+  power = value == 0 ? 0 : 1;
+}
+
+void setSolidColor(CRGB color)
+{
+  setSolidColor(color.r, color.g, color.b);
+}
+
+void setSolidColor(uint8_t r, uint8_t g, uint8_t b)
+{
+  solidColor = CRGB(r, g, b);
+
+  EEPROM.write(2, r);
+  EEPROM.write(3, g);
+  EEPROM.write(4, b);
+
+  setPattern(patternCount - 1);
+}
+
+// increase or decrease the current pattern number, and wrap around at the ends
+void adjustPattern(bool up)
+{
+  if (up)
+    currentPatternIndex++;
+  else
+    currentPatternIndex--;
+
+  // wrap around at the ends
+  if (currentPatternIndex < 0)
+    currentPatternIndex = patternCount - 1;
+  if (currentPatternIndex >= patternCount)
+    currentPatternIndex = 0;
+
+  if (autoplayEnabled) {
+    EEPROM.write(1, currentPatternIndex);
+    EEPROM.commit();
+  }
+}
+
+void setPattern(int value)
+{
+  // don't wrap around at the ends
+  if (value < 0)
+    value = 0;
+  else if (value >= patternCount)
+    value = patternCount - 1;
+
+  currentPatternIndex = value;
+
+  if (autoplayEnabled == 0) {
+    EEPROM.write(1, currentPatternIndex);
+    EEPROM.commit();
+  }
+}
+
+void setPalette(int value)
+{
+  // don't wrap around at the ends
+  if (value < 0)
+    value = 0;
+  else if (value >= paletteCount)
+    value = paletteCount - 1;
+
+  currentPaletteIndex = value;
+
+  EEPROM.write(5, currentPaletteIndex);
+  EEPROM.commit();
+}
+
+// adjust the brightness, and wrap around at the ends
+void adjustBrightness(bool up)
+{
+  if (up)
+    brightnessIndex++;
+  else
+    brightnessIndex--;
+
+  // wrap around at the ends
+  if (brightnessIndex < 0)
+    brightnessIndex = brightnessCount - 1;
+  else if (brightnessIndex >= brightnessCount)
+    brightnessIndex = 0;
+
+  brightness = brightnessMap[brightnessIndex];
+
+  FastLED.setBrightness(brightness);
+
+  EEPROM.write(0, brightness);
+  EEPROM.commit();
+}
+
+void setBrightness(int value)
+{
+  // don't wrap around at the ends
+  if (value > 255)
+    value = 255;
+  else if (value < 0) value = 0;
+
+  brightness = value;
+
+  FastLED.setBrightness(brightness);
+
+  EEPROM.write(0, brightness);
+  EEPROM.commit();
+}
+
+void showSolidColor()
+{
+  fill_solid(leds, NUM_LEDS, solidColor);
 }
 
