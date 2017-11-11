@@ -228,6 +228,7 @@ void handleSerial() {
     } else if (cmd == 'r') {    // run
         runPatterns = param;
     } else if (cmd == 'p') {    // pattern
+        if (param >= 0x30 && param <= 0x39) param -= 0x30;
         pattern = param;
     } else if (cmd == 's') {    // set color
         // wait for color values to be sent
