@@ -7,7 +7,10 @@ const uint32_t serialBaud = 115200;
 unsigned int orbID = 1;
 
 // Number of connected LEDs
-const uint16_t PixelCount = 659;
+// const uint16_t PixelCount = 659;
+// const uint16_t PixelCount = 598;
+// const uint16_t PixelCount = 32;
+const uint16_t PixelCount = 975;
 
 // 0 == Martin's Philips IR
 // 1 == Alex's Tween IR
@@ -15,7 +18,7 @@ const uint8_t IR_type = 1;
 
 // Each pixel needs ca 1mA even when black
 // also, the power-calculation of FastLED seems to be off by a factor of ~0.6
-const uint16_t maxMilliAmp = 2000;
+const uint16_t maxMilliAmp = 5000;
 
 // Which pin is the IR-sensor connected to
 #define PIN_IR 5   // GPIO5 = D3
@@ -63,8 +66,12 @@ bool gReverseDirection = true;     // reverse direction?
 #define S1 113
 #define L1 225
 #define L2 157
-#define L3 89
-#define L4 76
+#define L3 89+76-65
+
+#define L4 89
+#define L5 71
+// #define L6 226
+#define L6 220
 
 // show a "power usage bar"
 #define DEBUG_POWER 0
