@@ -74,11 +74,26 @@ void setup() {
 
     Serial.begin(serialBaud);
 
-    wifiManager.setAPCallback([](WiFiManager *myWiFiManager) {
-            showStatus(AP_CONFIG);
-    });
+    WiFi.begin("ssid", "pw");
 
-    wifiManager.autoConnect(AP_NAME, AP_PASS);
+    SPIFFS.begin();
+
+    Serial.print("Connecting");
+    while (WiFi.status() != WL_CONNECTED)
+    {
+        delay(500);
+        Serial.print(".");
+    }
+    Serial.println();
+
+    Serial.print("Connected, IP address: ");
+    Serial.println(WiFi.localIP());
+
+    // wifiManager.setAPCallback([](WiFiManager *myWiFiManager) {
+    //         showStatus(AP_CONFIG);
+    // });
+
+    // wifiManager.autoConnect(AP_NAME, AP_PASS);
 
     client.beginMulticast(WiFi.localIP(), multicastIP, SERVER_PORT);
     // client.begin(SERVER_PORT);
@@ -469,6 +484,12 @@ void sendSolidColor()
 void setPower(uint8_t value)
 {
   power = value == 0 ? 0 : 1;
+  if (power == 0) {
+      sendCmd('r', 0);
+      sendCmd('b', 1);
+  } else {
+      sendCmd('r', 1);
+  }
 }
 
 void setSolidColor(CRGB color)
@@ -478,8 +499,9 @@ void setSolidColor(CRGB color)
 
 void setSolidColor(uint8_t r, uint8_t g, uint8_t b)
 {
-  solidColor = CRGB(r, g, b);
-  setPattern(patternCount - 1);
+    solidColor = CRGB(r, g, b);
+    sendCmd('s', 0);
+    sendColor(r, g, b);
 }
 
 // increase or decrease the current pattern number, and wrap around at the ends
@@ -508,6 +530,7 @@ void setPattern(int value)
   currentPatternIndex = value;
 
   sendCmd('p', patterns[currentPatternIndex].number);
+  sendCmd('r', 1);
 }
 
 // adjust the brightness, and wrap around at the ends
