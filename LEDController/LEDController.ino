@@ -37,9 +37,9 @@ void setup() {
     Serial.begin(serialBaud);
 
 #if REORDER
-    FastLED.addLeds<NEOPIXEL, 3>(orderedleds, PixelCount);
+    FastLED.addLeds<NEOPIXEL, 4>(orderedleds, PixelCount);
 #else
-    FastLED.addLeds<NEOPIXEL, 3>(leds, PixelCount);
+    FastLED.addLeds<NEOPIXEL, 4>(leds, PixelCount);
 #endif
     FastLED.setMaxPowerInVoltsAndMilliamps(5, maxMilliAmp);
     FastLED.setCorrection(TypicalSMD5050);
