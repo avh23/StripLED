@@ -24,7 +24,7 @@ const uint16_t maxMilliAmp = 5000;
 #define PIN_IR 5   // GPIO5 = D3
 
 // starting pattern
-int pattern = 4;
+int pattern = 3;
 
 // Configuration for pattern "Points"
 const uint8_t PointCount = 50;
