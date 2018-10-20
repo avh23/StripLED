@@ -18,7 +18,7 @@ const uint8_t IR_type = 1;
 
 // Each pixel needs ca 1mA even when black
 // also, the power-calculation of FastLED seems to be off by a factor of ~0.6
-const uint16_t maxMilliAmp = 5000;
+const uint16_t maxMilliAmp = 30000;
 
 // Which pin is the IR-sensor connected to
 #define PIN_IR 5   // GPIO5 = D3
