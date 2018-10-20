@@ -188,7 +188,7 @@ void loop() {
 
         } else if (pattern == 9) {
             // travelling white point to debug REORDER
-            if (p < 580 || p > 600) p=580;
+            if (p < 0 || p > 900) p = 0;
             fill_solid(leds, PixelCount, CRGB::Black);
             leds[p++] = CRGB(red, grn, blu);
             reorderedShow();
