@@ -40,18 +40,20 @@ typedef struct {
 typedef PatternAndName PatternAndNameList[];
 
 // List of patterns to cycle through
-const uint8_t patternCount = 10;
+const uint8_t patternCount = 12;
 PatternAndNameList patterns = {
   { 1, "Strobe" },
   { 2, "Color Strobe" },
   { 3, "Moving Rainbow" },
-  { 5, "Flag" },
+  { 12, "Flag" },
   { 4, "Points" },
-  { 6, "Fire2012" },
+  { 11, "Fire2012" },
   { 7, "Random Colors" },
   { 8, "Test" },
   { 9, "Travelling Point" },
   { 10, "Solid Color" },
+  { 5, "Area 1" },
+  { 6, "Area 2" },
 };
 
 const uint8_t brightnessCount = 5;

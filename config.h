@@ -73,5 +73,11 @@ bool gReverseDirection = true;     // reverse direction?
 // #define L6 226
 #define L6 220
 
+// Area 1/2 Start/Length
+#define A1S 5
+#define A1L 3
+#define A2S 10
+#define A2L 10
+
 // show a "power usage bar"
 #define DEBUG_POWER 0

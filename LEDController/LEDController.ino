@@ -91,7 +91,7 @@ void loop() {
             delay(10);
             h++;
 
-        } else if (pattern == 5) {
+        } else if (pattern == 12) {
             // Flagge
             fill_solid(leds, PixelCount, CRGB::Black);
 
@@ -137,7 +137,7 @@ void loop() {
             reorderedShow();
             delay(36);
 
-        } else if (pattern == 6) {    // Fire2012
+        } else if (pattern == 11) {    // Fire2012
             // Step 1.  Cool down every cell a little
             for( int i = 0; i < PixelCount; i++) {
                 heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / PixelCount) + 2));
@@ -198,7 +198,21 @@ void loop() {
             // solid color for all LEDs
             fill_solid(leds, PixelCount, CRGB(red, grn, blu));
             reorderedShow();
-            delay(1000);
+            delay(100);
+
+        } else if (pattern == 5) {
+            // Area 1
+            fill_solid(leds, PixelCount, CRGB::Black);
+            fill_solid(leds+A1S, A1L, CRGB(red, grn, blu));
+            reorderedShow();
+            delay(100);
+
+        } else if (pattern == 6) {
+            // Area 2
+            fill_solid(leds, PixelCount, CRGB::Black);
+            fill_solid(leds+A2S, A2L, CRGB(red, grn, blu));
+            reorderedShow();
+            delay(100);
         }
     } else {
         // not running right now, just wait a bit
