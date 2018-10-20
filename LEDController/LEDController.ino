@@ -16,6 +16,9 @@ CRGB orderedleds[PixelCount+10];
 #endif
 
 uint8_t runPatterns = 1;
+uint8_t red = 100;
+uint8_t grn = 100;
+uint8_t blu = 100;
 
 static byte heat[PixelCount];
 
@@ -65,7 +68,7 @@ void loop() {
     if (runPatterns == 1) {
         if (pattern == 1) {
             // Strobe
-            fill_solid(leds, PixelCount, CRGB::White);
+            fill_solid(leds, PixelCount, CRGB(red, grn, blu));
             reorderedShow();
             delay(2);
             fill_solid(leds, PixelCount, CRGB::Black);
@@ -187,13 +190,13 @@ void loop() {
             // travelling white point to debug REORDER
             if (p < 580 || p > 600) p=580;
             fill_solid(leds, PixelCount, CRGB::Black);
-            leds[p++] = CRGB::White;
+            leds[p++] = CRGB(red, grn, blu);
             reorderedShow();
             delay(100);
 
         } else if (pattern == 10) {
             // solid color for all LEDs
-            fill_solid(leds, PixelCount, CRGB::Green);
+            fill_solid(leds, PixelCount, CRGB(red, grn, blu));
             reorderedShow();
             delay(1000);
         }
@@ -235,11 +238,11 @@ void handleSerial() {
         // wait for color values to be sent
         delay(10);
         if (Serial.available() > 2) {
-            byte red = Serial.read();
-            byte grn = Serial.read();
-            byte blu = Serial.read();
-            runPatterns = 0;
-            setColor(red, grn, blu);
+            red = Serial.read();
+            grn = Serial.read();
+            blu = Serial.read();
+            // runPatterns = 0;
+            // setColor(red, grn, blu);
         } else {
             // bad input, flush buffer
             while (Serial.available() > 0) Serial.read();
@@ -248,9 +251,9 @@ void handleSerial() {
         // wait for color values to be sent
         delay(10);
         if (Serial.available() > 2) {
-            byte red = Serial.read();
-            byte grn = Serial.read();
-            byte blu = Serial.read();
+            red = Serial.read();
+            grn = Serial.read();
+            blu = Serial.read();
             runPatterns = 0;
             leds[param] = CRGB(red, grn, blu);
         } else {
