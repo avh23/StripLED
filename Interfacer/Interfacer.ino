@@ -348,7 +348,7 @@ void sendCmd(char cmd, uint8_t param) {
      */
     Serial.print('!');
     Serial.print(cmd);
-    Serial.print(param);
+    Serial.write(param);
 }
 
 void sendColor(uint32_t param) {
