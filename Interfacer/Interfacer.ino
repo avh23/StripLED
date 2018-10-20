@@ -23,6 +23,8 @@ IPAddress multicastIP(239, 15, 18, 2);
 const uint8_t  AtmoBufferSize = 5 + 3*AtmoLeds; // 0xC0FFEE + Cmd + OrbID + RGB
 uint8_t buffer[AtmoBufferSize];
 
+IPAddress myIP(192, 168, 0, 250);
+
 ESP8266WebServer server(80);
 
 enum statuus {
@@ -76,6 +78,7 @@ void setup() {
 
     Serial.begin(serialBaud);
 
+    WiFi.config(myIP, IPAddress(192, 168, 0, 254), IPAddress(255, 255, 255, 0));
     WiFi.begin("ssid", "pw");
 
     SPIFFS.begin();
