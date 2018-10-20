@@ -213,6 +213,14 @@ void loop() {
             fill_solid(leds+A2S, A2L, CRGB(red, grn, blu));
             reorderedShow();
             delay(100);
+
+        } else if (pattern == 13) {
+            // Area 3
+            fill_solid(leds, PixelCount, CRGB::Black);
+            fill_solid(leds+A3S, A3L, CRGB(red, grn, blu));
+            reorderedShow();
+            delay(100);
+
         }
     } else {
         // not running right now, just wait a bit
