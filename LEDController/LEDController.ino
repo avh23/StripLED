@@ -415,7 +415,7 @@ void reorderedShow() {
     }
     memcpy(orderedleds+S1+L1+L2+L3, leds+S1+L1+L2+L3, L4 * sizeof(CRGB));
     for (int i=0; i<L5; i++) {
-        orderedleds[S1+L1+L2+L3+L4+i] = leds[S1+L1+L2+L3+L4-i-1];
+        orderedleds[S1+L1+L2+L3+L4+i] = leds[S1+L1+L2+L3+L4+L5-i-1];
     }
     memcpy(orderedleds+S1+L1+L2+L3+L4+L5, leds+S1+L1+L2+L3+L4+L5, L6 * sizeof(CRGB));
 
