@@ -71,7 +71,6 @@ CRGB solidColor = CRGB::Blue;
     ******************************************************************  */
 
 void setup() {
-    WiFiManager wifiManager;
 
     Serial.begin(serialBaud);
 
@@ -89,12 +88,6 @@ void setup() {
 
     Serial.print("Connected, IP address: ");
     Serial.println(WiFi.localIP());
-
-    // wifiManager.setAPCallback([](WiFiManager *myWiFiManager) {
-    //         showStatus(AP_CONFIG);
-    // });
-
-    // wifiManager.autoConnect(AP_NAME, AP_PASS);
 
     client.beginMulticast(WiFi.localIP(), multicastIP, SERVER_PORT);
     // client.begin(SERVER_PORT);
