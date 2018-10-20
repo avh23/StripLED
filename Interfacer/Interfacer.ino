@@ -4,6 +4,7 @@
 #include <ArduinoOTA.h>
 #include <ESP8266mDNS.h>
 #include <IRremoteESP8266.h>
+#include <IRrecv.h>
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>
