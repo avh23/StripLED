@@ -226,6 +226,7 @@ void handleSerial() {
         fill_solid(leds, PixelCount, CRGB::Black);
         reorderedShow();
     } else if (cmd == 'r') {    // run
+        if (param >= 0x30 && param <= 0x39) param -= 0x30;
         runPatterns = param;
     } else if (cmd == 'p') {    // pattern
         if (param >= 0x30 && param <= 0x39) param -= 0x30;
